@@ -1,0 +1,29 @@
+{
+  "name": "tikguard-hub-v14",
+  "version": "14.0.0",
+  "private": true,
+  "description": "Arabic content team planner with local API and SQLite",
+  "scripts": {
+    "start": "node server/index.js",
+    "check": "node --check server/index.js && node --check server/create-admin.js && node tests/syntax-client.js",
+    "test": "node --test tests/*.test.js",
+    "backup": "node scripts/backup.js",
+    "health": "bash scripts/health-check.sh",
+    "verify": "npm run check && npm test"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2"
+  }
+}

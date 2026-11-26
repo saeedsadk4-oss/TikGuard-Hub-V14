@@ -1,0 +1,99 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TikGuard Hub V14</title><style>
+:root{--bg:#0b1220;--p:#121c2d;--p2:#18253a;--ln:#26354d;--tx:#eef4ff;--mut:#9fb0c9;--ac:#58c5b8;--ok:#79d4a5;--bad:#f07b83}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,Segoe UI,sans-serif}header{padding:18px 4vw;border-bottom:1px solid var(--ln);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}main{max-width:1200px;margin:auto;padding:20px}h1{font-size:1.25rem;margin:0}h2{font-size:1.05rem}small,.muted{color:var(--mut)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.panel{background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:14px;margin:12px 0}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{background:var(--ac);border:0;border-radius:8px;padding:9px 12px;color:#07151b;font-weight:700;cursor:pointer}.btn.secondary{background:var(--p2);border:1px solid var(--ln);color:var(--tx)}.btn.danger{background:var(--bad)}input,select,textarea{width:100%;padding:9px;border:1px solid var(--ln);border-radius:8px;background:#0d1727;color:var(--tx);font:inherit}label{display:block;margin:8px 0 4px;color:var(--mut);font-size:.9rem}form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.full{grid-column:1/-1}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse}td,th{text-align:right;padding:8px;border-bottom:1px solid var(--ln)}th{color:var(--mut)}.status{background:var(--p2);padding:3px 8px;border-radius:15px}.error{color:var(--bad)}.ok{color:var(--ok)}.hidden{display:none}#login{max-width:450px;margin:8vh auto}button:disabled{opacity:.5;cursor:not-allowed}@media print{header,.btn,form{display:none!important}body{background:white;color:black}.panel{background:white;color:black}}
+</style>  <link rel="stylesheet" href="/v14.1.css">
+
+<style id="tikguard-v141">
+:root {
+  color-scheme: light dark;
+  --tg-bg:#f3f5fa;
+  --tg-card:#ffffff;
+  --tg-text:#172033;
+  --tg-muted:#68748a;
+  --tg-border:#e3e8f0;
+  --tg-primary:#635bdb;
+}
+@media(prefers-color-scheme:dark) {
+  :root {
+    --tg-bg:#101522;
+    --tg-card:#1a2232;
+    --tg-text:#edf2fc;
+    --tg-muted:#a6b1c5;
+    --tg-border:#303b50;
+  }
+}
+* {box-sizing:border-box}
+body {
+  background:var(--tg-bg)!important;
+  color:var(--tg-text);
+  font-family:system-ui,sans-serif;
+  margin:0;
+}
+main {
+  width:min(100% - 20px,1200px);
+  margin:14px auto;
+}
+.panel {
+  background:var(--tg-card)!important;
+  color:var(--tg-text);
+  border:1px solid var(--tg-border);
+  border-radius:13px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 3px 12px rgba(0,0,0,.045);
+}
+h1,h2,h3 {line-height:1.4}
+h2 {font-size:17px;margin:0 0 12px}
+input,select,textarea,button {
+  max-width:100%;
+  border-radius:9px;
+  padding:10px;
+}
+input,select,textarea {
+  background:var(--tg-card);
+  color:var(--tg-text);
+  border:1px solid var(--tg-border);
+}
+button {
+  cursor:pointer;
+  font-weight:600;
+}
+table {width:100%;border-collapse:collapse}
+th,td {
+  padding:10px;
+  border-bottom:1px solid var(--tg-border);
+  text-align:right;
+}
+.tablewrap {overflow-x:auto}
+.hidden {display:none!important}
+@media(max-width:600px) {
+  main {width:calc(100% - 14px);margin:7px auto}
+  .panel {padding:11px;border-radius:11px}
+  h1 {font-size:21px}
+  h2 {font-size:15px}
+  th,td {padding:8px;font-size:13px}
+  input,select,textarea,button {font-size:14px}
+}
+</style>
+\n</head><body>
+<header><div><h1>TikGuard Hub <span class="status">V14 • متصل بالخادم</span></h1><small>إدارة مهام المحتوى والتقويم التحريري فقط</small></div><div class="row"><span id="who" class="muted"></span><button class="btn secondary hidden" id="logout">خروج</button></div></header>
+<main><section id="login" class="panel"><h2>تسجيل الدخول</h2><form id="loginForm"><div><label>اسم المستخدم</label><input name="username" required autocomplete="username" maxlength="60"></div><div><label>كلمة المرور</label><input name="password" type="password" required autocomplete="current-password"></div><div class="full"><button class="btn" type="submit">دخول</button></div></form><p id="loginMsg" class="muted"></p></section>
+<section id="app" class="hidden"><div class="grid"><div class="panel"><small>إجمالي المهام</small><h2 id="taskTotal">0</h2></div><div class="panel"><small>قيد التنفيذ</small><h2 id="taskDoing">0</h2></div><div class="panel"><small>المراجعة</small><h2 id="taskReview">0</h2></div><div class="panel"><small>محتوى مخطط</small><h2 id="contentTotal">0</h2></div></div>
+<div class="panel"><h2>إضافة مهمة</h2><form id="taskForm"><div><label>العنوان</label><input name="title" maxlength="120" required></div><div><label>موعد</label><input name="due_date" type="date"></div><div><label>الأولوية</label><select name="priority"><option value="normal">عادية</option><option value="high">عالية</option><option value="low">منخفضة</option></select></div><div><label>المسؤول (رقم المستخدم، اختياري)</label><input name="assigned_user" type="number" min="1"></div><div class="full"><label>الوصف</label><textarea name="description" maxlength="2000"></textarea></div><div class="full"><button class="btn" type="submit">حفظ المهمة</button></div></form></div>
+<div class="panel"><h2>المهام</h2><div class="tablewrap"><table><thead><tr><th>العنوان</th><th>الموعد</th><th>الحالة</th><th>تغيير الحالة</th></tr></thead><tbody id="tasks"></tbody></table></div></div>
+<div class="panel"><h2>إضافة خطة محتوى</h2><form id="contentForm"><div><label>عنوان المحتوى</label><input name="title" maxlength="120" required></div><div><label>المنصة</label><select name="platform"><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>أخرى</option></select></div><div><label>موعد مخطط</label><input name="planned_date" type="date"></div><div><label>الحالة</label><select name="status"><option value="idea">فكرة</option><option value="ready">جاهز</option><option value="published">تم النشر (يدوي)</option></select></div><div class="full"><label>موجز</label><textarea name="brief" maxlength="2000"></textarea></div><div class="full"><button class="btn" type="submit">حفظ المحتوى</button></div></form></div>
+<div class="panel"><h2>المحتوى</h2><div class="tablewrap"><table><thead><tr><th>العنوان</th><th>المنصة</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody id="contents"></tbody></table></div></div>
+<div class="panel"><h2>ملخص</h2><p id="summary"></p><button class="btn secondary" onclick="window.print()">طباعة</button></div><p id="apiError" class="error"></p></section></main>
+<script>
+'use strict';let token='',user=null;const $=id=>document.getElementById(id);function api(path,options={}){options.headers={...(options.headers||{}),...(token?{Authorization:'Bearer '+token}:{})};if(options.body)options.headers['Content-Type']='application/json';return fetch(path,options).then(async r=>{let data=await r.json().catch(()=>({error:'استجابة غير مفهومة'}));if(!r.ok)throw new Error(data.error||'تعذر الطلب');return data;});}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const taskNames={todo:'جديدة',doing:'قيد التنفيذ',review:'مراجعة',done:'منجزة',rework:'تعديل'};const contentNames={idea:'فكرة',ready:'جاهز',published:'تم النشر'};
+async function load(){try{const [tasks,content,summary]=await Promise.all([api('/api/tasks'),api('/api/content'),api('/api/reports/summary')]);$('taskTotal').textContent=tasks.length;$('taskDoing').textContent=tasks.filter(t=>t.status==='doing').length;$('taskReview').textContent=tasks.filter(t=>t.status==='review').length;$('contentTotal').textContent=content.length;
+$('tasks').innerHTML=tasks.map(t=>`<tr><td>${esc(t.title)}<small>${esc(t.description)}</small></td><td>${esc(t.due_date||'—')}</td><td><span class="status">${esc(taskNames[t.status]||t.status)}</span></td><td><select data-task-id="${t.id}" class="taskState"><option value="${esc(t.status)}">${esc(taskNames[t.status])}</option>${Object.entries(taskNames).filter(([s])=>s!==t.status).map(([s,n])=>`<option value="${s}">${n}</option>`).join('')}</select></td></tr>`).join('');
+$('contents').innerHTML=content.map(c=>`<tr><td>${esc(c.title)}<small>${esc(c.brief)}</small></td><td>${esc(c.platform)}</td><td>${esc(c.planned_date||'—')}</td><td><select data-content-id="${c.id}" class="contentState"><option value="${esc(c.status)}">${esc(contentNames[c.status])}</option>${Object.entries(contentNames).filter(([s])=>s!==c.status).map(([s,n])=>`<option value="${s}">${n}</option>`).join('')}</select></td></tr>`).join('');
+const done=tasks.filter(t=>t.status==='done').length;$('summary').textContent=`مهام: ${tasks.length} • إنجاز: ${done} (${tasks.length?Math.round(done/tasks.length*100):0}٪) • محتوى: ${content.length} • أعضاء: ${summary.totals.users}`;$('apiError').textContent='';}catch(e){$('apiError').textContent=e.message;}}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);try{const data=await api('/api/auth/login',{method:'POST',body:JSON.stringify({username:f.get('username'),password:f.get('password')})});token=data.token;user=data.user;$('login').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');$('who').textContent=`${user.username} • ${user.role}`;await load();}catch(err){$('loginMsg').textContent=err.message;}});
+$('logout').addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'});}finally{token='';user=null;$('login').classList.remove('hidden');$('app').classList.add('hidden');$('logout').classList.add('hidden');$('who').textContent='';}});
+$('taskForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);let data={title:f.get('title'),description:f.get('description'),due_date:f.get('due_date')||null,priority:f.get('priority'),assigned_user:f.get('assigned_user')?Number(f.get('assigned_user')):null};try{await api('/api/tasks',{method:'POST',body:JSON.stringify(data)});e.target.reset();await load();}catch(err){$('apiError').textContent=err.message;}});
+$('contentForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);let data={title:f.get('title'),platform:f.get('platform'),brief:f.get('brief'),planned_date:f.get('planned_date')||null,status:f.get('status')};try{await api('/api/content',{method:'POST',body:JSON.stringify(data)});e.target.reset();await load();}catch(err){$('apiError').textContent=err.message;}});
+document.addEventListener('change',async e=>{if(e.target.matches('.taskState')){try{await api(`/api/tasks/${e.target.dataset.taskId}/status`,{method:'PATCH',body:JSON.stringify({status:e.target.value})});await load();}catch(err){$('apiError').textContent=err.message;}}if(e.target.matches('.contentState')){try{await api(`/api/content/${e.target.dataset.contentId}`,{method:'PATCH',body:JSON.stringify({status:e.target.value})});await load();}catch(err){$('apiError').textContent=err.message;}}});
+</script></body></html>

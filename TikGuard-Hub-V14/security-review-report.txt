@@ -1,0 +1,17 @@
+=== TikGuard Hub V14 Security Review ===
+
+--- server/index.js ---
+[REVIEW] Potential shell execution - line 8
+
+--- server/create-admin.js ---
+[REVIEW] Potential shell execution - line 6
+[REVIEW] Sensitive logging candidate - line 19
+
+--- public/index.html ---
+[REVIEW] Potential unsafe HTML injection - line 18
+[REVIEW] Potential unsafe HTML injection - line 19
+
+=== SUMMARY ===
+Review indicators found: 5
+These are heuristic matches, not confirmed vulnerabilities.
+Manual code review and functional security tests are still required.

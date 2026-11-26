@@ -1,0 +1,14 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=path.join(__dirname,'..'),server=fs.readFileSync(path.join(root,'server','index.js'),'utf8'),client=fs.readFileSync(path.join(root,'public','index.html'),'utf8');
+test('Server health endpoint declares V14',()=>assert.match(server,/version:14/));
+test('Authentication and token expiration are present',()=>{assert.match(server,/app\.post\('\/api\/auth\/login',loginLimit/);assert.match(server,/expires_at/);assert.match(server,/crypto\.randomBytes\(32\)/);assert.match(server,/createHmac\('sha256',secret\)/);});
+test('Public signup is absent; admin role gate exists',()=>{assert.match(server,/app\.post\('\/api\/users',auth,roles\('admin'\)/);});
+test('Reviewer content updates are status-only and cannot publish',()=>{assert.match(server,/req\.user\.role==='reviewer'/);assert.match(server,/Object\.keys\(req\.body\|\|\{\}\)\.some\(k=>k!=='status'\)/);assert.match(server,/!\['idea','ready'\]\.includes\(status\)/);assert.doesNotMatch(server,/المراجع يغير الحالة فقط/);});
+test('Dates validate calendar values instead of regex only',()=>{assert.match(server,/getUTCFullYear\(\)===y/);assert.match(server,/getUTCDate\(\)===d/);});
+test('Content and task workflows are exposed',()=>{assert.match(server,/\/api\/content/);assert.match(server,/\/api\/tasks/);assert.match(server,/\/api\/reports\/summary/);});
+test('Client calls API endpoints and escapes dynamic text',()=>{assert.match(client,/fetch\(path,options\)/);assert.match(client,/function esc\(/);assert.match(client,/Authorization:'Bearer '/);});
+test('Client has login, task, and content forms',()=>{assert.match(client,/id="loginForm"/);assert.match(client,/id="taskForm"/);assert.match(client,/id="contentForm"/);});
+test('No automated engagement endpoint or feature',()=>{assert.doesNotMatch(server,/\/api\/(likes|follows|comments|engagement)/i);assert.doesNotMatch(client,/auto-?follow|auto-?like|auto-?comment/i);});
+test('Date helper rejects impossible dates and accepts leap day',()=>{const line=server.split('\n').find(l=>l.includes('function date(v)'));assert.ok(line,'date helper line found');const start=line.indexOf('function date(v)');const source=line.slice(start).trim();const fn=new Function(`${source}; return date;`)();assert.equal(fn('2024-02-29'),'2024-02-29');assert.equal(fn('2025-02-29'),false);assert.equal(fn('2025-04-31'),false);assert.equal(fn('bad'),false);assert.equal(fn(''),null);});
+test('Static HTML IDs are unique',()=>{const ids=[...client.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);const dup=ids.filter((id,i)=>ids.indexOf(id)!==i);assert.deepEqual(dup,[]);});
+test('Logout and summary controls wired to API',()=>{assert.match(client,/\/api\/auth\/logout/);assert.match(client,/\/api\/reports\/summary/);});

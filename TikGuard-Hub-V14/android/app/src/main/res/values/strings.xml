@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TikGuard Hub</string>
+    <string name="title_activity_main">TikGuard Hub</string>
+    <string name="package_name">com.tikguard.hub</string>
+    <string name="custom_url_scheme">com.tikguard.hub</string>
+</resources>

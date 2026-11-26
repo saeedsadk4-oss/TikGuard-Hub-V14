@@ -1,0 +1,16 @@
+#!/data/data/com.termux/files/usr/bin/bash
+cd "$HOME/TikGuard-Hub-V14" || exit 1
+
+echo "TikGuard Hub V14 Audit"
+echo "====================="
+
+npm run check || exit 1
+npm test || exit 1
+
+echo
+echo "API HEALTH:"
+curl -fsS --max-time 5 http://127.0.0.1:3000/api/health \
+|| echo "Server is offline"
+
+echo
+echo "Audit complete."

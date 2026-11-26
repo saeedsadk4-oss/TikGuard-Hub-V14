@@ -1,0 +1,90 @@
+TIKGUARD HUB V14.1
+DATE: Tue Nov 24 00:12:50 +03 2026
+
+=== PACKAGE ===
+{
+  "name": "tikguard-hub-v14",
+  "version": "14.0.0",
+  "private": true,
+  "description": "Arabic content team planner with local API and SQLite",
+  "scripts": {
+    "start": "node server/index.js",
+    "check": "node --check server/index.js && node --check server/create-admin.js && node tests/syntax-client.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true
+  }
+}
+
+=== FRONTEND IDS ===
+id="who"
+id="logout"
+id="login"
+id="loginForm"
+id="loginMsg"
+id="app"
+id="taskTotal"
+id="taskDoing"
+id="taskReview"
+id="contentTotal"
+id="taskForm"
+id="tasks"
+id="contentForm"
+id="contents"
+id="summary"
+id="apiError"
+id="${t.id}"
+id="${c.id}"
+
+=== API ROUTES ===
+19:app.get('/api/health',(req,res)=>res.json({ok:true,service:'TikGuard Hub API',version:14}));
+20:app.post('/api/auth/login',loginLimit,async(req,res)=>{const username=text(req.body?.username,60),password=typeof req.body?.password==='string'?req.body.password:'';const u=q.userByName.get(username);if(!u||!await bcrypt.compare(password,u.password_hash))return res.status(401).json({error:'بيانات الدخول غير صحيحة'});const token=crypto.randomBytes(32).toString('hex'),expires=Date.now()+8*60*60*1000;q.createSession.run(hashToken(token),u.id,expires);q.audit.run(u.id,'login','');res.json({token,expiresAt:expires,user:{id:u.id,username:u.username,role:u.role}});});
+21:app.post('/api/auth/logout',auth,(req,res)=>{q.removeSession.run(req.tokenHash);log(req,'logout');res.json({ok:true});});app.get('/api/auth/me',auth,(req,res)=>res.json({user:req.user}));
+22:app.get('/api/users',auth,roles('admin'),(_req,res)=>res.json(db.prepare('SELECT id,username,role,created_at FROM users ORDER BY id').all()));
+23:app.post('/api/users',auth,roles('admin'),async(req,res)=>{const username=text(req.body?.username,60),password=typeof req.body?.password==='string'?req.body.password:'',role=req.body?.role;if(!/^[A-Za-z0-9._-]{3,60}$/.test(username))return res.status(400).json({error:'اسم المستخدم غير صالح'});if(password.length<12)return res.status(400).json({error:'كلمة المرور يجب أن تكون 12 حرفًا على الأقل'});if(!['admin','editor','reviewer','viewer'].includes(role))return res.status(400).json({error:'الدور غير صالح'});try{const ph=await bcrypt.hash(password,12),r=db.prepare('INSERT INTO users(username,password_hash,role) VALUES(?,?,?)').run(username,ph,role);log(req,'user_create',username);res.status(201).json(q.userById.get(r.lastInsertRowid));}catch(err){if(String(err).includes('UNIQUE'))return res.status(409).json({error:'اسم المستخدم مستخدم'});res.status(500).json({error:'تعذر إنشاء الحساب'});}});
+24:app.get('/api/content',auth,(_req,res)=>res.json(db.prepare('SELECT * FROM content_items ORDER BY planned_date,id').all()));
+25:app.post('/api/content',auth,roles('admin','editor'),(req,res)=>{const title=text(req.body?.title,120),platform=text(req.body?.platform,40),brief=text(req.body?.brief,2000),planned=validDateInput(req.body?.planned_date),status=req.body?.status||'idea';if(!title||!platform)return res.status(400).json({error:'العنوان والمنصة مطلوبان'});if(req.body?.planned_date&&!planned)return res.status(400).json({error:'تاريخ غير صحيح'});if(!['idea','ready','published'].includes(status))return res.status(400).json({error:'حالة غير صالحة'});const r=db.prepare('INSERT INTO content_items(title,platform,brief,planned_date,status,created_by) VALUES(?,?,?,?,?,?)').run(title,platform,brief,planned,status,req.user.id);log(req,'content_create',title);res.status(201).json(db.prepare('SELECT * FROM content_items WHERE id=?').get(r.lastInsertRowid));});
+26:app.patch('/api/content/:id',auth,(req,res)=>{const id=Number(req.params.id),old=db.prepare('SELECT * FROM content_items WHERE id=?').get(id);if(!old)return res.status(404).json({error:'غير موجود'});if(req.user.role==='reviewer'){const status=req.body?.status;if(Object.keys(req.body||{}).some(k=>k!=='status')||!['idea','ready'].includes(status))return res.status(403).json({error:'المراجع يغير الحالة إلى فكرة أو جاهز فقط، ولا يملك صلاحية النشر'});db.prepare('UPDATE content_items SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(status,id);log(req,'content_review',`${id}:${status}`);return res.json(db.prepare('SELECT * FROM content_items WHERE id=?').get(id));}if(!['admin','editor'].includes(req.user.role))return res.status(403).json({error:'لا توجد صلاحية'});const title=req.body?.title===undefined?old.title:text(req.body.title,120),platform=req.body?.platform===undefined?old.platform:text(req.body.platform,40),brief=req.body?.brief===undefined?old.brief:text(req.body.brief,2000),planned=req.body?.planned_date===undefined?old.planned_date:validDateInput(req.body.planned_date),status=req.body?.status===undefined?old.status:req.body.status;if(!title||!platform)return res.status(400).json({error:'العنوان والمنصة مطلوبان'});if(req.body?.planned_date!==undefined&&req.body.planned_date!==null&&!planned)return res.status(400).json({error:'تاريخ غير صحيح'});if(!['idea','ready','published'].includes(status))return res.status(400).json({error:'حالة غير صالحة'});db.prepare('UPDATE content_items SET title=?,platform=?,brief=?,planned_date=?,status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(title,platform,brief,planned,status,id);log(req,'content_update',`id=${id}`);res.json(db.prepare('SELECT * FROM content_items WHERE id=?').get(id));});
+27:app.delete('/api/content/:id',auth,roles('admin','editor'),(req,res)=>{const r=db.prepare('DELETE FROM content_items WHERE id=?').run(Number(req.params.id));if(!r.changes)return res.status(404).json({error:'غير موجود'});log(req,'content_delete',req.params.id);res.json({ok:true});});
+28:app.get('/api/tasks',auth,(_req,res)=>res.json(db.prepare('SELECT * FROM tasks ORDER BY due_date,id').all()));app.post('/api/tasks',auth,roles('admin','editor'),(req,res)=>{const title=text(req.body?.title,120),description=text(req.body?.description,2000),due=validDateInput(req.body?.due_date),priority=req.body?.priority||'normal',assigned=req.body?.assigned_user||null;if(!title)return res.status(400).json({error:'عنوان المهمة مطلوب'});if(req.body?.due_date&&!due)return res.status(400).json({error:'تاريخ غير صحيح'});if(!['low','normal','high'].includes(priority))return res.status(400).json({error:'الأولوية غير صالحة'});if(assigned&&!q.userById.get(assigned))return res.status(400).json({error:'المستخدم غير موجود'});const r=db.prepare('INSERT INTO tasks(title,description,assigned_user,due_date,priority,created_by) VALUES(?,?,?,?,?,?)').run(title,description,assigned,due,priority,req.user.id);log(req,'task_create',title);res.status(201).json(db.prepare('SELECT * FROM tasks WHERE id=?').get(r.lastInsertRowid));});
+29:app.patch('/api/tasks/:id/status',auth,roles('admin','editor','reviewer'),(req,res)=>{const task=db.prepare('SELECT * FROM tasks WHERE id=?').get(Number(req.params.id));if(!task)return res.status(404).json({error:'المهمة غير موجودة'});const status=req.body?.status;if(!['todo','doing','review','done','rework'].includes(status))return res.status(400).json({error:'حالة غير صالحة'});db.prepare('UPDATE tasks SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(status,task.id);log(req,'task_status',`${task.id}:${status}`);res.json(db.prepare('SELECT * FROM tasks WHERE id=?').get(task.id));});
+30:app.get('/api/reports/summary',auth,(req,res)=>{const tasks=db.prepare('SELECT status,count(*) count FROM tasks GROUP BY status').all(),content=db.prepare('SELECT status,count(*) count FROM content_items GROUP BY status').all();res.json({tasks,content,totals:{tasks:db.prepare('SELECT count(*) n FROM tasks').get().n,content:db.prepare('SELECT count(*) n FROM content_items').get().n,users:db.prepare('SELECT count(*) n FROM users').get().n}});});app.get('/api/audit',auth,roles('admin'),(_req,res)=>res.json(db.prepare('SELECT a.id,a.event,a.details,a.created_at,u.username FROM audit_log a LEFT JOIN users u ON u.id=a.actor_user_id ORDER BY a.id DESC LIMIT 250').all()));
+
+=== DATABASE ===
+-rw-------. 1 u0_a202 u0_a202  48K Nov 23 23:36 server/tikguard.db
+-rw-------. 1 u0_a202 u0_a202  32K Nov 24 00:05 server/tikguard.db-shm
+-rw-------. 1 u0_a202 u0_a202 121K Nov 23 23:59 server/tikguard.db-wal
+
+=== TESTS ===
+
+> tikguard-hub-v14@14.0.0 test
+> node --test tests/*.test.js
+
+✔ Server health endpoint declares V14 (13.501539ms)
+✔ Authentication and token expiration are present (1.642769ms)
+✔ Public signup is absent; admin role gate exists (1.377539ms)
+✔ Reviewer content updates are status-only and cannot publish (2.175462ms)
+✔ Dates validate calendar values instead of regex only (1.681923ms)
+✔ Content and task workflows are exposed (1.664231ms)
+✔ Client calls API endpoints and escapes dynamic text (1.609231ms)
+✔ Client has login, task, and content forms (1.600538ms)
+✔ No automated engagement endpoint or feature (3.316231ms)
+✔ Date helper rejects impossible dates and accepts leap day (5.793308ms)
+✔ Static HTML IDs are unique (11.762461ms)
+✔ Logout and summary controls wired to API (1.617616ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1189.772
