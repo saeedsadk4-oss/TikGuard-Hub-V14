@@ -1,44 +1,14 @@
-# Environment and secrets
+node_modules/
 .env
 .env.*
 !.env.example
-
-# Dependencies
-node_modules/
-android/.gradle/
-.gradle/
-
-# Build outputs
-build/
-dist/
-android/app/build/
-android/build/
-*.apk
-*.aab
-
-# SQLite database
-server/*.db
-server/*.db-shm
-server/*.db-wal
-
-# Backups
+*.db
+*.db-shm
+*.db-wal
 backups/
-*.db.backup
-*.tar.gz
-
-# Logs
 logs/
-*.log
-npm-debug.log*
-
-# Local Android SDK
-local.properties
-
-# IDE
-.idea/
-.vscode/
-*.iml
-
-# OS
+reports/
+android/.gradle/
+android/local.properties
+android/**/build/
 .DS_Store
-Thumbs.db

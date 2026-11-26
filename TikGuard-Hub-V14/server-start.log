@@ -1,0 +1,6 @@
+nohup: ignoring input
+
+> tikguard-hub-v14@14.0.0 start
+> node server/index.js
+
+TikGuard Hub V14 listening on port 3000
